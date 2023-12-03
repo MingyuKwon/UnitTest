@@ -89,6 +89,7 @@ int turnLeft() {
 		if(m.isMotorError) 
 		{
 			m.lTurnModule = false;
+			printf("모터 고장! 좌회전 정지\n");
 			return 1;
 		}
 		printf("좌회전 하는 중....\n");
@@ -111,6 +112,7 @@ int turnRight() {
 		if(m.isMotorError) 
 		{
 			m.rTurnModule = false;
+			printf("모터 고장! 우회전 정지\n");
 			return 1;
 		}
 		printf("우회전 하는 중....\n");
@@ -122,7 +124,7 @@ int turnRight() {
 }
 
 int moveForward() {
-	m.moveForwardModule = 30; // 30cm/s (0.3m/s)로 이동
+	m.moveForwardModule = 10; // 10cm/s (0.1m/s)로 이동
 	m.lTurnModule = false; // 좌회전 모듈 종료
 	m.rTurnModule = false; // 우회전 모듈 종료
 
@@ -131,6 +133,7 @@ int moveForward() {
 		if(m.isMotorError) 
 		{
 			m.moveForwardModule = 0;
+			printf("모터 고장! 직진 정지\n");
 			return 1;
 		}
 		printf("직진 하는 중....\n");
