@@ -1,62 +1,68 @@
 #include <check.h>
 #include <stdio.h>
-#include "example.h"  // 테스트할 함수들이 정의된 헤더 파일
+#include "TestCase.h"  // 테스트할 케이스들이 정의된 헤더 파일
 
-START_TEST(turnRight_test) // 우회전 작업이 성공적으로 진행 되는지 체크
+Suite *TurnLeftScenario(void)
 {
-    ck_assert_int_eq(turnRight(), 0);  
+    Suite *s = suite_create("\nTurnLeftScenario");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, turnLeft_test);
+    suite_add_tcase(s, tc_core);
+    return s;
 }
-END_TEST
 
-START_TEST(turnLeft_test)  // 좌회전 작업이 성공적으로 진행 되는지 체크
-{ 
-    ck_assert_int_eq(turnLeft(), 0); 
-}
-END_TEST
-
-START_TEST(moveForward_test)  // 전진 작업이 성공적으로 진행 되는지 체크
-{ 
-    ck_assert_int_eq(moveForward(), 0); 
-}
-END_TEST
-
-START_TEST(ErrorturnRight_test) // 우회전 작업이 성공적으로 진행 되는지 체크
+Suite *TurnRighftScenario(void)
 {
-    m.isMotorError = true;
-    ck_assert_int_eq(turnRight(), 0);  
+    Suite *s = suite_create("\nTurnRighftScenario");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, turnRight_test);
+    suite_add_tcase(s, tc_core);
+    return s;
 }
-END_TEST
 
-START_TEST(ErrorturnLeft_test)  // 좌회전 작업이 성공적으로 진행 되는지 체크
-{ 
-    m.isMotorError = true;
-    ck_assert_int_eq(turnLeft(), 0); 
+Suite *MoveForwardScenario(void)
+{
+    Suite *s = suite_create("\nMoveForwardScenario");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, moveForward_test);
+    suite_add_tcase(s, tc_core);
+    return s;
 }
-END_TEST
 
-START_TEST(ErrormoveForward_test)  // 전진 작업이 성공적으로 진행 되는지 체크
-{ 
-    m.isMotorError = true;
-    ck_assert_int_eq(moveForward(), 0); 
+Suite *ErrorMoveForwardScenario(void)
+{
+    Suite *s = suite_create("\nErrormoveForward_test");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, ErrormoveForward_test);
+    suite_add_tcase(s, tc_core);
+    return s;
 }
-END_TEST
 
+Suite *ErrorTurnLeftScenario(void)
+{
+    Suite *s = suite_create("\nErrorturnLeft_test");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, ErrorturnLeft_test);
+    suite_add_tcase(s, tc_core);
+    return s;
+}
 
+Suite *ErrorTurnRighftScenario(void)
+{
+    Suite *s = suite_create("\nErrorturnRight_test");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, ErrorturnRight_test);
+    suite_add_tcase(s, tc_core);
+    return s;
+}
 
 
 Suite *normalScenario(void)
 {
     Suite *s = suite_create("\nNoramlExample");
     TCase *tc_core = tcase_create("Core");
-
-    // 두 테스트 케이스를 테스트 케이스 그룹에 추가
-    tcase_add_test(tc_core, turnRight_test);
-    tcase_add_test(tc_core, turnLeft_test);
-    tcase_add_test(tc_core, moveForward_test);
-
-    // 테스트 케이스 그룹을 스위트에 추가
+    tcase_add_test(tc_core, NormalMortor_test);
     suite_add_tcase(s, tc_core);
-
     return s;
 }
 
@@ -64,26 +70,35 @@ Suite *MotorErrorScenario(void)
 {
     Suite *s = suite_create("\nErrorExample");
     TCase *tc_core = tcase_create("Core");
-
-
-    // 두 테스트 케이스를 테스트 케이스 그룹에 추가
-    tcase_add_test(tc_core, ErrorturnRight_test);
-    tcase_add_test(tc_core, ErrorturnLeft_test);
-    tcase_add_test(tc_core, ErrormoveForward_test);
-
-    // 테스트 케이스 그룹을 스위트에 추가
+    tcase_add_test(tc_core, ErrorMotor_test);
     suite_add_tcase(s, tc_core);
-
     return s;
 }
 
 int main(void)
 {
+    printf("\n");
+
     int number_failed;
+
+    Suite *tls = TurnLeftScenario();
+    Suite *trs = TurnRighftScenario();
+    Suite *mfs = MoveForwardScenario();
+
+    Suite *etls = ErrorTurnLeftScenario();
+    Suite *etrs = ErrorTurnRighftScenario();
+    Suite *emfs = ErrorMoveForwardScenario();
+
     Suite *ns = normalScenario();
     Suite *mes = MotorErrorScenario();
 
-    SRunner *sr = srunner_create(ns);
+    SRunner *sr = srunner_create(tls);
+    srunner_add_suite(sr,trs);
+    srunner_add_suite(sr,mfs);
+    srunner_add_suite(sr,etls);
+    srunner_add_suite(sr,etrs);
+    srunner_add_suite(sr,emfs);
+    srunner_add_suite(sr,ns);
     srunner_add_suite(sr,mes);
 
     srunner_run_all(sr, CK_NORMAL);
