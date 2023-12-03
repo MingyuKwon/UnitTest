@@ -1,11 +1,13 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 struct Motor {
 	uint8_t moveForwardModule; //0일 때 정지, 그 외에엔 해당 속도로 이동 (단위: 1cm/s)
 	bool rTurnModule; //true일 때 오른쪽으로 90도 회전
 	bool lTurnModule; //true일 때 왼쪽으로 90도 회전
 	bool cleanerPowerUpModule; //true일 때 Power Up, false일 때 Power Off
+	bool isMotorError; // true이면 모터가 고장나서 조작이 안되는 상태, false 이면 정상
 } m;
 
 struct SensorInterface {
@@ -20,11 +22,13 @@ struct Checker {
 	bool dustExistence; // 먼지 여부
 } c; //RVC가 작동하기 위해 센서값을 Checker에 저장
 
+
+
 bool* detObstacle(bool* arr);
 bool detDust();
-void turnLeft();
-void turnRight();
-void moveForward();
+int turnLeft();
+int turnRight();
+int moveForward();
 void updateSensorSignal();
 void powerUpCleaner();
 void powerOffCleaner();
@@ -73,32 +77,67 @@ bool detDust() {
 	return s.dustSensor; // 먼지 감지 모듈 센서값
 }
 
-void turnLeft() {
+int turnLeft() {
 	m.moveForwardModule = 0; // 전진 종료
+	powerOffCleaner(); // 전진 중에만 먼지 청소를 할 수 있으므로, 클리너 Off
+
 	m.lTurnModule = true; // 좌회전 모듈 On
-	powerOffCleaner(); // 전진 중에만 먼지 청소를 할 수 있으므로, 클리너 Off
-	while (true) {
-		if (!m.lTurnModule) { // 좌회전 모듈은 90도 회전 시 자동으로 종료되는 모듈
-			return; // 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
+
+	// 좌회전 모듈은 90도 회전 시 자동으로 종료되는 모듈
+	for(int i=0; i<5; i++)  
+	{
+		if(m.isMotorError) 
+		{
+			m.lTurnModule = false;
+			return 1;
 		}
+		printf("좌회전 하는 중....\n");
 	}
+
+	// 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
+	m.lTurnModule = false;
+	return 0;
 }
 
-void turnRight() {
+int turnRight() {
 	m.moveForwardModule = 0; // 전진 종료
-	m.rTurnModule = true; // 우회전 모듈 On
 	powerOffCleaner(); // 전진 중에만 먼지 청소를 할 수 있으므로, 클리너 Off
-	while (true) {
-		if (!m.rTurnModule) { // 우회전 모듈은 90도 회전 시 자동으로 종료되는 모듈
-			return; // 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
+
+	m.rTurnModule = true; // 좌회전 모듈 On
+
+	// 우회전 모듈은 90도 회전 시 자동으로 종료되는 모듈
+	for(int i=0; i<5; i++)  
+	{
+		if(m.isMotorError) 
+		{
+			m.rTurnModule = false;
+			return 1;
 		}
+		printf("우회전 하는 중....\n");
 	}
+
+	// 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
+	m.rTurnModule = false;
+	return 0;
 }
 
-void moveForward() {
+int moveForward() {
 	m.moveForwardModule = 30; // 30cm/s (0.3m/s)로 이동
 	m.lTurnModule = false; // 좌회전 모듈 종료
 	m.rTurnModule = false; // 우회전 모듈 종료
+
+	for(; 0<m.moveForwardModule; m.moveForwardModule--)  
+	{
+		if(m.isMotorError) 
+		{
+			m.moveForwardModule = 0;
+			return 1;
+		}
+		printf("직진 하는 중....\n");
+	}
+
+	m.moveForwardModule = 0; // 전진 종료
+	return 0;
 }
 
 void updateSensorSignal() {
