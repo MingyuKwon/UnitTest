@@ -6,7 +6,7 @@ struct Motor {
 	uint8_t moveForwardModule; //0일 때 정지, 그 외에엔 해당 속도로 이동 (단위: 1cm/s)
 	bool rTurnModule; //true일 때 오른쪽으로 90도 회전
 	bool lTurnModule; //true일 때 왼쪽으로 90도 회전
-	bool cleanerPowerUpModule; //true일 때 Power Up, false일 때 Power Off
+	int cleanerPowerUpModule; //1 때 Power Up, 2일때 터보 모드, 0일 때 Power Off
 	bool isMotorError; // true이면 모터가 고장나서 조작이 안되는 상태, false 이면 정상
 } m;
 
@@ -30,8 +30,9 @@ int turnLeft();
 int turnRight();
 int moveForward();
 void updateSensorSignal();
-void powerUpCleaner();
-void powerOffCleaner();
+int powerUpCleaner();
+int powerOffCleaner();
+int powerUpTurboCleaner();
 
 int TestMain() {
 	while (true) {
@@ -53,16 +54,26 @@ int TestMain() {
 			turnLeft();
 			turnLeft(); // 좌회전을 두 번 실행하여 180도 회전
 		}
-		else if (!c.obstLocation[1]) { // 전방에 장애물이 없어 직진 중일 때
-			if (c.dustExistence) { // 만약 먼지가 있다면
-				powerUpCleaner(); // 클리너 On
-			}
-			else {
-				powerOffCleaner(); // 클리너 Off
+
+
+		if (!c.obstLocation[1]) { // 전방에 장애물이 없어 직진 중일 때
+		
+			if(m.isMotorError) // 만약 모터가 고장났다면
+			{
+				powerOffCleaner(); // 클리너 끄기
+			}else // 모터가 정상이라면
+			{
+				if (c.dustExistence) { // 만약 먼지가 있다면
+					powerUpTurboCleaner(); // 클리너 터보
+				}
+				else {
+					powerUpCleaner(); // 클리너 켜기
+				}
 			}
 		}
 	}
 
+	powerOffCleaner(); 
 	return 0;
 }
 
@@ -150,9 +161,30 @@ void updateSensorSignal() {
 	c.dustExistence = detDust(); // 먼지 센서값 받아오기
 }
 
-void powerUpCleaner() {
-	m.cleanerPowerUpModule = true; // 클리너 모듈 On
+int powerUpCleaner() {
+	if(m.isMotorError) 
+	{
+		printf(" 모터 고장! 먼지 흡입 종료\n");
+		powerOffCleaner();
+	}
+
+	m.cleanerPowerUpModule = 1; // 클리너 모듈 On
+	printf(" 청소기 모터 On\n");
 }
-void powerOffCleaner() {
-	m.cleanerPowerUpModule = false; // 클리너 모듈 Off
+
+int powerUpTurboCleaner() {
+	if(m.isMotorError) 
+	{
+		printf(" 모터 고장! 먼지 흡입 종료\n");
+		powerOffCleaner();
+	}
+
+	m.cleanerPowerUpModule = 2; // 클리너 모듈 터보로 변경
+	printf(" 청소기 모터 터보 모드\n");
+}
+
+int powerOffCleaner() {
+	m.cleanerPowerUpModule = 0; // 클리너 모듈 Off
+	printf(" 청소기 모터 Off\n");
+
 }
