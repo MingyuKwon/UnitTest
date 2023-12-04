@@ -106,6 +106,9 @@ int turnLeft() {
 		printf("좌회전 하는 중....\n");
 	}
 
+	printf("좌회전 마침, 정지 상태 돌입\n");
+
+
 	// 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
 	m.lTurnModule = false;
 	return 0;
@@ -128,6 +131,8 @@ int turnRight() {
 		}
 		printf("우회전 하는 중....\n");
 	}
+	printf("우회전 마침, 정지 상태 돌입\n");
+
 
 	// 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
 	m.rTurnModule = false;
@@ -149,6 +154,7 @@ int moveForward() {
 		}
 		printf("직진 하는 중....\n");
 	}
+	printf("직진 마침, 정지 상태 돌입\n");
 
 	m.moveForwardModule = 0; // 전진 종료
 	return 0;
@@ -166,10 +172,13 @@ int powerUpCleaner() {
 	{
 		printf(" 모터 고장! 먼지 흡입 종료\n");
 		powerOffCleaner();
+		return 1;
 	}
 
 	m.cleanerPowerUpModule = 1; // 클리너 모듈 On
 	printf(" 청소기 모터 On\n");
+	return 0;
+
 }
 
 int powerUpTurboCleaner() {
@@ -177,14 +186,16 @@ int powerUpTurboCleaner() {
 	{
 		printf(" 모터 고장! 먼지 흡입 종료\n");
 		powerOffCleaner();
+		return 1;
 	}
 
 	m.cleanerPowerUpModule = 2; // 클리너 모듈 터보로 변경
 	printf(" 청소기 모터 터보 모드\n");
+	return 0;
 }
 
 int powerOffCleaner() {
 	m.cleanerPowerUpModule = 0; // 클리너 모듈 Off
 	printf(" 청소기 모터 Off\n");
-
+	return 0;
 }
