@@ -156,7 +156,7 @@ int turnLeft() {
 	m.lTurnModule = true; // 좌회전 모듈 On
 
 	// 좌회전 모듈은 90도 회전 시 자동으로 종료되는 모듈
-	for(int i=0; i<5; i++)  
+	for(int i=0; i<3; i++)  
 	{
 		if(m.isMotorError) 
 		{
@@ -182,7 +182,7 @@ int turnRight() {
 	m.rTurnModule = true; // 좌회전 모듈 On
 
 	// 우회전 모듈은 90도 회전 시 자동으로 종료되는 모듈
-	for(int i=0; i<5; i++)  
+	for(int i=0; i<3; i++)  
 	{
 		if(m.isMotorError) 
 		{
@@ -201,11 +201,11 @@ int turnRight() {
 }
 
 int moveForward() {
-	m.moveForwardModule = 10; // 10cm/s (0.1m/s)로 이동
+	m.moveForwardModule = 30; // 30cm/s (0.3m/s)로 이동
 	m.lTurnModule = false; // 좌회전 모듈 종료
 	m.rTurnModule = false; // 우회전 모듈 종료
 
-	for(; 0<m.moveForwardModule; m.moveForwardModule--)  
+	for(int i=0; i < 5; i++)  
 	{
 		if(m.isMotorError) 
 		{

@@ -7,47 +7,25 @@ int main(void)
 
 //=========================== 이동 모터 시험 ==================================
     // Suite *tls = TurnLeftScenario();
-    // Suite *trs = TurnRighftScenario();
-    // Suite *mfs = MoveForwardScenario();
+    Suite *lrfs = LeftRightForwardScenario();
+    Suite *putos = powerUpTurboOffCleanerScenario();
 
-    // Suite *etls = ErrorTurnLeftScenario();
-    // Suite *etrs = ErrorTurnRighftScenario();
-    // Suite *emfs = ErrorMoveForwardScenario();
+    Suite *mrs = MoveRotateScenario();
+    Suite *mres = MoveRotateErrorScenario();
 
+    SRunner *moveMotorTestRunner = srunner_create(lrfs);
+    srunner_add_suite(moveMotorTestRunner,putos);
 
-    // Suite *pus = powerUpCleanerScenario();
-    // Suite *pos = powerOffCleanerScenario();
-    // Suite *ptus = powerUpTurboCleanerScenario();
+    srunner_add_suite(moveMotorTestRunner,mrs);
+    srunner_add_suite(moveMotorTestRunner,mres);
 
-    // Suite *epus = ErrorpowerUpCleanerScenarios();
-    // Suite *epos = ErrorpowerOffCleanerScenario();
-    // Suite *eptus = ErrorpowerUpTurboCleanerScenario();
-
-
-    // Suite *ns = normalScenario();
-    // Suite *mes = MotorErrorScenario();
+    srunner_run_all(moveMotorTestRunner, CK_NORMAL);
+    number_failed = srunner_ntests_failed(moveMotorTestRunner);
+    srunner_free(moveMotorTestRunner);
 
 
-    // SRunner *moveMotorTestRunner = srunner_create(tls);
-    // srunner_add_suite(moveMotorTestRunner,trs);
-    // srunner_add_suite(moveMotorTestRunner,mfs);
-    // srunner_add_suite(moveMotorTestRunner,etls);
-    // srunner_add_suite(moveMotorTestRunner,etrs);
-    // srunner_add_suite(moveMotorTestRunner,emfs);
-    // srunner_add_suite(moveMotorTestRunner,ns);
-    // srunner_add_suite(moveMotorTestRunner,mes);
-
-    // srunner_add_suite(moveMotorTestRunner,pus);
-    // srunner_add_suite(moveMotorTestRunner,pos);
-    // srunner_add_suite(moveMotorTestRunner,ptus);
-    // srunner_add_suite(moveMotorTestRunner,epus);
-    // srunner_add_suite(moveMotorTestRunner,epos);
-    // srunner_add_suite(moveMotorTestRunner,eptus);
-
-    // srunner_run_all(moveMotorTestRunner, CK_NORMAL);
-    // number_failed = srunner_ntests_failed(moveMotorTestRunner);
-    // srunner_free(moveMotorTestRunner);
-//=========================== 이동 모터 시험 ==================================
+    printf("\n\n\n");
+//===========================  센서 감지 시험 ==================================
 
     Suite *dds = detDustScenario();
     Suite *dos = detObstacleScenario();
@@ -61,3 +39,4 @@ int main(void)
 
     return (number_failed == 0) ? 0 : 1;
 }
+
