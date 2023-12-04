@@ -100,8 +100,189 @@ END_TEST
 
 
 
+// ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ 센서 감지 케이스↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+START_TEST(detDustTest)  // 먼지 탐지가 정상적인지 확인
+{ 
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓먼지 탐지가 정상적인지 확인↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+    printf("===먼지 전방에 있는 상황===\n");
+    s.dustSensor = 1;
+    ck_assert_int_eq(detDust(&(c.dustExistence)), 0); 
+    printf("===먼지 전방에 없는 상황===\n");
+    s.dustSensor = 0;
+    ck_assert_int_eq(detDust(&(c.dustExistence)), 0); 
+    printf("===먼지 샌서 오류 상황===\n");
+    s.dustSensor = 2;
+    ck_assert_int_eq(detDust(&(c.dustExistence)), 1); 
+}
+END_TEST
+
+START_TEST(rightSensorTest)  // 우측 장애물 탐지가 정상적인지 확인
+{ 
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓우측 장애물 탐지가 정상적인지 확인↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 0;
+
+    printf("===우측에 장애물 있는 상황===\n");
+    s.rSensor = 1;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+    printf("===우측에 장애물 없는 상황===\n");
+    s.rSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+    printf("===우측 장애물 센서 고장 상황===\n");
+    s.rSensor = 2;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1); 
+}
+END_TEST
+
+START_TEST(leftSensorTest)  // 좌측 장애물 탐지가 정상적인지 확인
+{ 
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓좌측 장애물 탐지가 정상적인지 확인↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 0;
+
+    printf("===좌측에 장애물 있는 상황===\n");
+    s.lSensor = 1;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+    printf("===좌측에 장애물 없는 상황===\n");
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+    printf("===좌측 장애물 센서 고장 상황===\n");
+    s.lSensor = 2;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1); 
+}
+END_TEST
+
+START_TEST(forwardSensorTest)  // 전방 장애물 탐지가 정상적인지 확인
+{ 
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓전방 장애물 탐지가 정상적인지 확인↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 0;
+
+    printf("===전방에 장애물 있는 상황===\n");
+    s.fSensor = 1;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+    printf("===전방에 장애물 없는 상황===\n");
+    s.fSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+    printf("===전방 장애물 센서 고장 상황===\n");
+    s.fSensor = 2;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1); 
+}
+END_TEST
+
+START_TEST(NormaldetObstacleTest) // 센서 탐지가 정상적인지 확인
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓장애물 센서가 정상인 경우의 테스트들↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+
+    printf("===전방, 우측, 좌측에 장애물 없는 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0);
+
+    printf("===전방, 좌측에 장애물 없고 우측에 장애물 있는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0);
+
+    printf("===우측, 좌측에 장애물 없고 전방에 장애물 있는 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0);
+
+    printf("===우측, 전방에 장애물 없고 좌측에 장애물 있는 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+
+    printf("===전방에 장애물 없고 우측, 좌측에 장애물 있는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0);
+
+    printf("===우측에 장애물 없고 전방, 좌측에 장애물 있는 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0);
+
+    printf("===좌측에 장애물 없고 우측, 전방에 장애물 있는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+
+    printf("=== 우측, 좌측, 전방에 장애물 있는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 0); 
+}
+END_TEST
+
+START_TEST(ErrordetObstacleTest) // 센서 탐지가 정상적인지 확인
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓장애물 센서가 고장난 경우의 테스트들↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+
+    printf("===전방, 좌측 센서 정상이고 우측센서가 오류난 상황===\n");
+    s.rSensor = 2;
+    s.fSensor = 0;
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1);
+
+    printf("===우측, 좌측 센서 정상이고 전방센서가 오류난 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 2;
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1);
+
+    printf("===우측, 전방 센서 정상이고 좌측센서가 오류난 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 2;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1); 
+
+    printf("===전방 센서 정상이고 우측, 좌측센서가 오류난 상황===\n");
+    s.rSensor = 2;
+    s.fSensor = 0;
+    s.lSensor = 2;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1);
+
+    printf("===우측 센서 정상이고 전방, 좌측센서가 오류난 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 2;
+    s.lSensor = 2;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1);
+
+    printf("===좌측 센서 정상이고 우측, 전방센서가 오류난 상황===\n");
+    s.rSensor = 2;
+    s.fSensor = 2;
+    s.lSensor = 0;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1); 
+
+    printf("=== 우측, 좌측, 전방센서가 오류난 상황===\n");
+    s.rSensor = 2;
+    s.fSensor = 2;
+    s.lSensor = 2;
+    ck_assert_int_eq(detObstacle(c.obstLocation), 1); 
+}
+END_TEST
+
+
+// ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 센서 감지 케이스 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+
+
 START_TEST(NormalMortor_test) // 이동 모터가 정상일 때 잘 움직이는지 확인
 {
+    printf("===이동 모터 정상===\n");
     m.isMotorError = false; // 모터 정상!!
     ck_assert_int_eq(moveForward(), 0); // 직진
     ck_assert_int_eq(turnRight(), 0);  // 오른쪽으로 돌았다가
@@ -113,6 +294,7 @@ END_TEST
 
 START_TEST(ErrorMotor_test) // 이동 모터가 고장 났을 때 어떻게 움직이는지 확인
 {
+    printf("===이동 모터 고장!===\n");
     m.isMotorError = true; // 모터 고장!!
     ck_assert_int_eq(moveForward(), 1); // 직진
     ck_assert_int_eq(turnRight(), 1);  // 오른쪽으로 돌았다가
@@ -123,6 +305,34 @@ START_TEST(ErrorMotor_test) // 이동 모터가 고장 났을 때 어떻게 움�
 END_TEST
 
 //------------------------------------------------------------
+
+Suite *detDustScenario(void)
+{
+    Suite *s = suite_create("\n--detDustScenario--");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, detDustTest);
+    suite_add_tcase(s, tc_core);
+    return s;
+}
+
+Suite *detObstacleScenario(void)
+{
+    Suite *s = suite_create("\n--detObstacleScenario--");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, rightSensorTest);
+    tcase_add_test(tc_core, leftSensorTest);
+    tcase_add_test(tc_core, forwardSensorTest);
+    tcase_add_test(tc_core, NormaldetObstacleTest);
+    tcase_add_test(tc_core, ErrordetObstacleTest);
+    suite_add_tcase(s, tc_core);
+    return s;
+}
+
+
+
+
+
+
 
 Suite *TurnLeftScenario(void)
 {

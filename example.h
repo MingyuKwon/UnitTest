@@ -11,27 +11,31 @@ struct Motor {
 } m;
 
 struct SensorInterface {
-	bool rSensor; //우측 장애물 센서
-	bool fSensor; //전방 장애물 센서
-	bool lSensor; //좌측 장애물 센서
-	bool dustSensor; //먼지 센서
+	int rSensor; //우측 장애물 센서  0 : 없음, 1 : 있음 , 2 : 에러
+	int fSensor; //전방 장애물 센서  0 : 없음, 1 : 있음 , 2 : 에러
+	int lSensor; //좌측 장애물 센서  0 : 없음, 1 : 있음 , 2 : 에러
+	int dustSensor; //먼지 센서   0 : 없음, 1 : 있음 , 2 : 에러
 } s; // 각 센서의 output wire와 연결
 
 struct Checker {
-	bool obstLocation[3]; // left, front, right
-	bool dustExistence; // 먼지 여부
+	int obstLocation[3]; // left, front, right
+	int dustExistence; // 먼지 여부
 } c; //RVC가 작동하기 위해 센서값을 Checker에 저장
 
 
 
-bool* detObstacle(bool* arr);
-bool detDust();
+int detObstacle(int* arr);
+int detDust(int* sensor);
+
+
 int turnLeft();
 int turnRight();
 int moveForward();
+
 void updateSensorSignal();
+
 int powerUpCleaner();
-int powerOffCleaner();
+int powerOffCleaner(); 
 int powerUpTurboCleaner();
 
 int TestMain() {
@@ -63,10 +67,13 @@ int TestMain() {
 				powerOffCleaner(); // 클리너 끄기
 			}else // 모터가 정상이라면
 			{
-				if (c.dustExistence) { // 만약 먼지가 있다면
+				if (c.dustExistence == 1) { // 만약 먼지가 있다면
 					powerUpTurboCleaner(); // 클리너 터보
 				}
-				else {
+				else if(c.dustExistence == 2) // 먼지 센서에 오류 생기면 
+				{
+					powerOffCleaner(); // 클리너 끄기
+				}else{
 					powerUpCleaner(); // 클리너 켜기
 				}
 			}
@@ -77,15 +84,69 @@ int TestMain() {
 	return 0;
 }
 
-bool* detObstacle(bool* arr) {
+int detObstacle(int* arr) {
 	arr[0] = s.lSensor; // 좌측 장애물 센서값
+	if(arr[0] == 2) 
+	{
+		printf("좌측 센서 오류 감지\n");
+	}else if(arr[0] == 1)
+	{
+		printf("좌측 센서 장애물 감지\n");
+	}else
+	{
+		printf("좌측 장애물 없음\n");
+	}
+
 	arr[1] = s.fSensor; // 전방 장애물 센서값
+	if(arr[1] == 2) 
+	{
+		printf("전방 센서 오류 감지\n");
+	}else if(arr[1] == 1)
+	{
+		printf("전방 센서 장애물 감지\n");
+	}else
+	{
+		printf("전방 장애물 없음\n");
+	}
+
 	arr[2] = s.rSensor; // 우측 장애물 센서값
-	return arr;
+	if(arr[2] == 2) 
+	{
+		printf("우측 센서 오류 감지\n");
+	}else if(arr[2] == 1)
+	{
+		printf("우측 센서 장애물 감지\n");
+	}else
+	{
+		printf("우측 장애물 없음\n");
+	}
+
+	if(arr[0] == 2 || arr[1] == 2 || arr[2] == 2) 
+	{
+		printf("센서 오류 감지, 오류 반환\n");
+		return 1; // 센서 중 고장난게 있으면 에러 표시 띄움
+	}
+	
+	return 0;
 }
 
-bool detDust() {
-	return s.dustSensor; // 먼지 감지 모듈 센서값
+int detDust(int* sensor) {
+	*sensor = s.dustSensor; // 먼지 감지 모듈 센서값
+
+	if(s.dustSensor == 2) 
+	{
+		printf("먼지 탐지 센서 오류 감지 , 오류 반환\n");
+		return 1;
+	}else if(s.dustSensor == 1)
+	{
+		printf("먼지 탐지 센서 장애물 감지\n");
+	}else
+	{
+		printf("먼지 탐지 장애물 없음\n");
+	}
+
+	return 0;
+
 }
 
 int turnLeft() {
@@ -161,10 +222,8 @@ int moveForward() {
 }
 
 void updateSensorSignal() {
-	// 하드웨어로부터 센서값을 받아옵니다
-	bool arr[3];
-	*c.obstLocation = detObstacle(arr); // 장애물 센서값 받아오기
-	c.dustExistence = detDust(); // 먼지 센서값 받아오기
+	detObstacle(c.obstLocation); // 장애물 센서값 받아오기
+	detDust(&(c.dustExistence)); // 먼지 센서값 받아오기
 }
 
 int powerUpCleaner() {
