@@ -31,6 +31,7 @@ int detDust(int* sensor);
 int turnLeft();
 int turnRight();
 int moveForward();
+int moveMotorStop();
 
 void updateSensorSignal();
 
@@ -150,9 +151,7 @@ int detDust(int* sensor) {
 }
 
 int turnLeft() {
-	m.moveForwardModule = 0; // 전진 종료
-	powerOffCleaner(); // 전진 중에만 먼지 청소를 할 수 있으므로, 클리너 Off
-
+	moveMotorStop(); // 모터 정지
 	m.lTurnModule = true; // 좌회전 모듈 On
 
 	// 좌회전 모듈은 90도 회전 시 자동으로 종료되는 모듈
@@ -167,7 +166,8 @@ int turnLeft() {
 		printf("좌회전 하는 중....\n");
 	}
 
-	printf("좌회전 마침, 정지 상태 돌입\n");
+	printf("좌회전 마침\n");
+	moveMotorStop(); // 모터 정지
 
 
 	// 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
@@ -176,8 +176,7 @@ int turnLeft() {
 }
 
 int turnRight() {
-	m.moveForwardModule = 0; // 전진 종료
-	powerOffCleaner(); // 전진 중에만 먼지 청소를 할 수 있으므로, 클리너 Off
+	moveMotorStop(); // 모터 정지
 
 	m.rTurnModule = true; // 좌회전 모듈 On
 
@@ -192,7 +191,8 @@ int turnRight() {
 		}
 		printf("우회전 하는 중....\n");
 	}
-	printf("우회전 마침, 정지 상태 돌입\n");
+	printf("우회전 마침\n");
+	moveMotorStop(); // 모터 정지
 
 
 	// 회전이 종료될 때까지 기다린 후 return (Checker 모드 돌입)
@@ -209,15 +209,21 @@ int moveForward() {
 	{
 		if(m.isMotorError) 
 		{
-			m.moveForwardModule = 0;
+			moveMotorStop();
 			printf("모터 고장! 직진 정지\n");
 			return 1;
 		}
 		printf("직진 하는 중....\n");
 	}
-	printf("직진 마침, 정지 상태 돌입\n");
+	printf("직진 마침\n");
 
-	m.moveForwardModule = 0; // 전진 종료
+	moveMotorStop(); // 모터 정지
+	return 0;
+}
+
+int moveMotorStop() {
+	m.moveForwardModule = 0; // 모터 정지
+	printf("정지 상태 돌입\n");
 	return 0;
 }
 
