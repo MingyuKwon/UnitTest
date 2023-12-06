@@ -23,17 +23,15 @@ struct Checker {
 } c; //RVC가 작동하기 위해 센서값을 Checker에 저장
 
 
+int MoveEvadingObstacle();
 
 int detObstacle(int* arr);
 int detDust(int* sensor);
-
 
 int turnLeft();
 int turnRight();
 int moveForward();
 int moveMotorStop();
-
-void updateSensorSignal();
 
 int powerUpCleaner();
 int powerOffCleaner(); 
@@ -41,8 +39,6 @@ int powerUpTurboCleaner();
 
 int TestMain() {
 	while (true) {
-		updateSensorSignal(); // Checker 모드
-
 		if (m.moveForwardModule == 0) { // 전진 중이 아닐 경우
 			if (!c.obstLocation[1]) { // 전방에 장애물이 없다면
 				moveForward(); // 전진
@@ -82,6 +78,93 @@ int TestMain() {
 	}
 
 	powerOffCleaner(); 
+	return 0;
+}
+
+void SetSensorForUnitTest(bool isTurnLeft)
+{
+	if(isTurnLeft)
+	{
+		s.rSensor = s.fSensor;
+		s.fSensor = s.lSensor;
+		s.lSensor = 0;
+
+	}else
+	{
+		s.lSensor = s.fSensor ;
+		s.fSensor = s.rSensor;
+		s.rSensor = 0;
+	}
+}
+
+int MoveEvadingObstacle()
+{
+	int detectArray[3];
+	int returnValue = detObstacle(detectArray);
+
+	if(returnValue == 2)
+	{
+		moveMotorStop();
+		printf("장애물 감지 반환값 오류! 장애물 회피 동작 정지\n");
+		return 1;
+	}else 
+	{
+		int checkState = 0; // 작업이 정상적으로 이뤄 젔는지 확인
+		if(detectArray[1] == 0) // 만약 전방에 장애물이 없는 경우
+		{
+			checkState += moveForward();
+		}else if(detectArray[0] == 0) // 전방에 장애물 있고, 좌측에 장애물이 없는 경우
+		{
+			checkState += turnLeft();
+			checkState += moveForward();
+		}else if(detectArray[2] == 0) // 전방, 좌측에 장애물 있고, 우측에 장애물이 없는 경우
+		{
+			checkState += turnRight();
+			checkState += moveForward();
+		}else // 전방, 좌측, 우측 모두 장애물이 있는 경우
+		{
+			checkState += turnLeft();
+			checkState += turnLeft();
+			checkState += moveForward();
+		}
+
+		return checkState == 0 ? 0 : 1;
+	}
+
+
+
+	for(int i=0; i < 5; i++)  
+	{
+		if(m.isMotorError) 
+		{
+			moveMotorStop();
+			printf("모터 고장! 직진 정지\n");
+			return 1;
+		}
+
+		printf("---------직진 과정---------\n");
+
+		int returnValue = detObstacle(detectArray);
+
+		if(returnValue == 2)
+		{
+			moveMotorStop();
+			printf("장애물 감지 반환값 오류! 직진 정지\n");
+			return 1;
+		}else if(detectArray[1] == 1)
+		{
+			moveMotorStop();
+			printf("전방에 장애물 존재. 직진 정지\n");
+			return 0;
+		}
+
+		printf("직진 하는 중....\n");
+		printf("---------직진 과정---------\n");
+
+	}
+	printf("직진 마침\n");
+
+	moveMotorStop(); // 모터 정지
 	return 0;
 }
 
@@ -167,6 +250,7 @@ int turnLeft() {
 	}
 
 	printf("좌회전 마침\n");
+	SetSensorForUnitTest(true);
 	moveMotorStop(); // 모터 정지
 
 
@@ -192,6 +276,7 @@ int turnRight() {
 		printf("우회전 하는 중....\n");
 	}
 	printf("우회전 마침\n");
+	SetSensorForUnitTest(false);
 	moveMotorStop(); // 모터 정지
 
 
@@ -205,22 +290,6 @@ int moveForward() {
 	m.rTurnModule = false; // 우회전 모듈 종료
 
 	int detectArray[3];
-	int returnValue = detObstacle(detectArray);
-
-	if(returnValue == 2)
-	{
-		moveMotorStop();
-		printf("장애물 감지 반환값 오류! 직진 정지\n");
-		return 1;
-	}else if(detectArray[1] == 1)
-	{
-		moveMotorStop();
-		printf("전방에 장애물 존재. 직진 정지\n");
-		return 0;
-	}
-
-	if(detectArray[0] == 0)
-
 	m.moveForwardModule = 30; // 30cm/s (0.3m/s)로 이동
 
 	for(int i=0; i < 5; i++)  
@@ -232,7 +301,7 @@ int moveForward() {
 			return 1;
 		}
 
-		returnValue = detObstacle(detectArray);
+		int returnValue = detObstacle(detectArray);
 
 		if(returnValue == 2)
 		{
@@ -261,10 +330,6 @@ int moveMotorStop() {
 	return 0;
 }
 
-void updateSensorSignal() {
-	detObstacle(c.obstLocation); // 장애물 센서값 받아오기
-	detDust(&(c.dustExistence)); // 먼지 센서값 받아오기
-}
 
 int powerUpCleaner() {
 	if(m.isMotorError) 

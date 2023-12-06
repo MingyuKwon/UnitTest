@@ -317,6 +317,57 @@ START_TEST(ErrordetObstacleTest) // 센서 탐지가 정상적인지 확인
 END_TEST
 
 
+START_TEST(MoveEvadingObstacleTest) // 장애물 회피 Use Case 테스트
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓장애물 감지와, 움직임의 방향을 정하고 움직이는 것이 동시에 일어 나는↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+
+    printf("===우측에 장애물 존재하는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 0;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+
+    printf("===좌측에 장애물 존재하는 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+
+    printf("===전방에 장애물 존재하는 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+
+    printf("===전방 우측에 장애물 존재하는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+
+    printf("===전방 좌측에 장애물 존재하는 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+
+    printf("===우측, 좌측에 장애물 존재하는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+
+    printf("===우측, 좌측, 전방 모두에 장애물 존재하는 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+
+
+}
+END_TEST
+
+
 // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 센서 감지 케이스 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 
 
@@ -389,6 +440,15 @@ Suite *powerUpTurboOffCleanerScenario(void) // 흡입, 터보 흡입, 흡입 중
     tcase_add_test(tc_core, powerUpCleanerTest);
     tcase_add_test(tc_core, powerUpTurboCleanerTest);
     tcase_add_test(tc_core, powerOffCleanerTest);
+    suite_add_tcase(s, tc_core);
+    return s;
+}
+
+Suite *MoveEvadingObstacleScenario(void) // 장애물을 회피해서 잘 이동하는지 확인하는 시나리오
+{
+    Suite *s = suite_create("\n--MoveEvadingObstacleScenario--");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, MoveEvadingObstacleTest);
     suite_add_tcase(s, tc_core);
     return s;
 }

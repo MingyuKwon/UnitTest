@@ -39,6 +39,16 @@ int main(void)
     number_failed = srunner_ntests_failed(SensorTestRunner);
     srunner_free(SensorTestRunner);
 
+    printf("\n\n\n");
+//=========================== 센서 감지 + 이동 합체 시험 ===============================
+    Suite *meos = MoveEvadingObstacleScenario();
+
+    SRunner * MoveEvadingObstacleTestRunner = srunner_create(meos);
+
+    srunner_run_all(MoveEvadingObstacleTestRunner, CK_NORMAL);
+    number_failed = srunner_ntests_failed(MoveEvadingObstacleTestRunner);
+    srunner_free(MoveEvadingObstacleTestRunner);
+
     return (number_failed == 0) ? 0 : 1;
 }
 
