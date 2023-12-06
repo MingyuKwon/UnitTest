@@ -121,40 +121,6 @@ int MoveEvadingObstacle()
 		return checkState == 0 ? 0 : 1;
 	}
 
-	int CleanRoom() {
-	while (true) {
-		int result = MoveEvadingObstacle();
-		if(result == 1)
-		{
-			printf("에러 감지! 로봇 청소기 작동 중지\n");
-			return 1;
-		}
-
-		if (!c.obstLocation[1]) { // 전방에 장애물이 없어 직진 중일 때
-		
-			if(m.isMotorError) // 만약 모터가 고장났다면
-			{
-				powerOffCleaner(); // 클리너 끄기
-			}else // 모터가 정상이라면
-			{
-				if (c.dustExistence == 1) { // 만약 먼지가 있다면
-					powerUpTurboCleaner(); // 클리너 터보
-				}
-				else if(c.dustExistence == 2) // 먼지 센서에 오류 생기면 
-				{
-					powerOffCleaner(); // 클리너 끄기
-				}else{
-					powerUpCleaner(); // 클리너 켜기
-				}
-			}
-		}
-	}
-
-	powerOffCleaner(); 
-	return 0;
-}
-
-
 	for(int i=0; i < 5; i++)  
 	{
 		if(m.isMotorError) 
@@ -187,6 +153,26 @@ int MoveEvadingObstacle()
 	printf("직진 마침\n");
 
 	moveMotorStop(); // 모터 정지
+	return 0;
+}
+
+int CleanRoom() {
+
+	int result = checkDustAndMotor();
+
+	if (result == 1) { 
+		printf("에러 감지! 로봇 청소기 작동 중지\n");
+		return 1;
+	}
+
+	result = MoveEvadingObstacle();
+	if(result == 1)
+	{
+		printf("에러 감지! 로봇 청소기 작동 중지\n");
+		return 1;
+	}
+
+	
 	return 0;
 }
 
@@ -230,7 +216,7 @@ int detObstacle(int* arr) {
 	if(arr[0] == 2 || arr[1] == 2 || arr[2] == 2) 
 	{
 		printf("센서 오류 감지, 오류 반환\n");
-		return 1; // 센서 중 고장난게 있으면 에러 표시 띄움
+		return 2; // 센서 중 고장난게 있으면 에러 표시 띄움
 	}
 	
 	return 0;
@@ -245,11 +231,11 @@ int detDust(int* sensor) {
 		return 2;
 	}else if(s.dustSensor == 1)
 	{
-		printf("먼지 탐지 센서 장애물 감지\n");
+		printf("먼지 탐지 센서 먼지 감지\n");
 		return 1;
 	}else
 	{
-		printf("먼지 탐지 장애물 없음\n");
+		printf("먼지 탐지 먼지 없음\n");
 		return 0;
 	}
 

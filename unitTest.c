@@ -42,8 +42,10 @@ int main(void)
     printf("\n\n\n");
 //=========================== 센서 감지 + 이동 합체 + 종합 시험 ===============================
     Suite *meos = CombineScenario();
+    Suite *crs = CleanRoomScenario();
 
     SRunner * MoveEvadingObstacleTestRunner = srunner_create(meos);
+    srunner_add_suite(MoveEvadingObstacleTestRunner,crs);
 
     srunner_run_all(MoveEvadingObstacleTestRunner, CK_NORMAL);
     number_failed = srunner_ntests_failed(MoveEvadingObstacleTestRunner);

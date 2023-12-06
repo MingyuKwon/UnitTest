@@ -437,16 +437,84 @@ END_TEST
 
 
 
-START_TEST(cleanRoomByRVC) // 방을 꼼꼼히 치우는 테스트 케이스1
+START_TEST(cleanRoomByRVCTest) // 방을 꼼꼼히 치우는 테스트 케이스1
 {
     printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓방을 꼼꼼히 치우는 테스트 케이스1↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
-
-    printf("===우측에 장애물 존재하는 상황===\n");
-    printf("=2. 우회전=\n");
-    s.rSensor = 1;
+    printf("=1. 우측 X , 전방 X , 좌측 X , 먼지 X =\n");
+    s.rSensor = 0;
     s.fSensor = 0;
     s.lSensor = 0;
-    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+    s.dustSensor = 0;
+    ck_assert_int_eq(CleanRoom(), 0);
+
+    printf("=2. 우측 X , 전방 0 , 좌측 X , 먼지 X =\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    s.dustSensor = 0;
+    ck_assert_int_eq(CleanRoom(), 0);
+
+    printf("=3. 우측 X , 전방 0 , 좌측 0 , 먼지 0 =\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    s.dustSensor = 1;
+    ck_assert_int_eq(CleanRoom(), 0);
+
+    printf("=4. 우측 0 , 전방 X , 좌측 0 , 먼지 X =\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    s.dustSensor = 0;
+    ck_assert_int_eq(CleanRoom(), 0);
+
+    printf("=5. 우측 0 , 전방 0 , 좌측 0 , 먼지 0 =\n");
+    s.rSensor = 1;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    s.dustSensor = 1;
+    ck_assert_int_eq(CleanRoom(), 0);
+}
+END_TEST
+
+
+START_TEST(cleanRoomErrorByRVCTest) // 방을 꼼꼼히 치우는 테스트 케이스2
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓방을 꼼꼼히 치우는 테스트 케이스2 에러 포함↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+    printf("=1. 우측 X , 전방 X , 좌측 X , 먼지 X =\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 0;
+    s.dustSensor = 0;
+    ck_assert_int_eq(CleanRoom(), 0);
+
+    printf("=2. 우측 Error , 전방 0 , 좌측 X , 먼지 X =\n");
+    s.rSensor = 2;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    s.dustSensor = 0;
+    ck_assert_int_eq(CleanRoom(), 1);
+
+    printf("=3. 우측 Error , 전방 Error , 좌측 0 , 먼지 0 =\n");
+    s.rSensor = 2;
+    s.fSensor = 2;
+    s.lSensor = 1;
+    s.dustSensor = 1;
+    ck_assert_int_eq(CleanRoom(), 1);
+
+    printf("=4. 우측 0 , 전방 X , 좌측 0 , 먼지 Error =\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    s.dustSensor = 2;
+    ck_assert_int_eq(CleanRoom(), 1);
+
+    printf("=5. 우측 0 , 전방 Error , 좌측 0 , 먼지 Error =\n");
+    s.rSensor = 1;
+    s.fSensor = 2;
+    s.lSensor = 1;
+    s.dustSensor = 2;
+    ck_assert_int_eq(CleanRoom(), 1);
 }
 END_TEST
 
@@ -532,13 +600,23 @@ Suite *powerUpTurboOffCleanerScenario(void) // 흡입, 터보 흡입, 흡입 중
 
 //--------------------종합 시나리오-----------------------------
 
-Suite *CombineScenario(void) // 장애물을 회피해서 잘 이동하는지 확인하는 시나리오
+Suite *CombineScenario(void) // 센서와 각종 모터의 종합이 잘 움직이는지 확인하는 시나리오
 {
-    Suite *s = suite_create("\n--MoveEvadingObstacleScenario--");
+    Suite *s = suite_create("\n--CombineScenario--");
     TCase *tc_core = tcase_create("Core");
     tcase_add_test(tc_core, checkDustMotorTest);
     tcase_add_test(tc_core, MoveEvadingObstacleTest);
     tcase_add_test(tc_core, MoveEvadingErrorObstacleTest);
+    suite_add_tcase(s, tc_core);
+    return s;
+}
+
+Suite *CleanRoomScenario(void) // 최종적으로 잘 움직이는지 확인하는 시나리오
+{
+    Suite *s = suite_create("\n--CleanRoomScenario--");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, cleanRoomByRVCTest);
+    tcase_add_test(tc_core, cleanRoomErrorByRVCTest);
     suite_add_tcase(s, tc_core);
     return s;
 }
