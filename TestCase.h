@@ -146,13 +146,13 @@ START_TEST(detDustTest)  // 먼지 탐지가 정상적인지 확인
     printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓먼지 탐지가 정상적인지 확인↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
     printf("===먼지 전방에 있는 상황===\n");
     s.dustSensor = 1;
-    ck_assert_int_eq(detDust(&(c.dustExistence)), 0); 
+    ck_assert_int_eq(detDust(&(c.dustExistence)), 1); 
     printf("===먼지 전방에 없는 상황===\n");
     s.dustSensor = 0;
     ck_assert_int_eq(detDust(&(c.dustExistence)), 0); 
     printf("===먼지 샌서 오류 상황===\n");
     s.dustSensor = 2;
-    ck_assert_int_eq(detDust(&(c.dustExistence)), 1); 
+    ck_assert_int_eq(detDust(&(c.dustExistence)), 2); 
 }
 END_TEST
 
@@ -317,6 +317,22 @@ START_TEST(ErrordetObstacleTest) // 센서 탐지가 정상적인지 확인
 END_TEST
 
 
+START_TEST(checkDustMotorTest) // 먼지 감지하고 흡입 모터를 조절하는 테스트
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓먼지 감지하고 흡입 모터를 조절하는 테스트↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+
+    printf("===먼지 존재하는 상황===\n");
+    s.dustSensor = 1;
+    ck_assert_int_eq(checkDustAndMotor(), 0);
+    printf("===먼지 없는 상황===\n");
+    s.dustSensor = 0;
+    ck_assert_int_eq(checkDustAndMotor(), 0);
+    printf("===먼지 센서 고장난 상황===\n");
+    s.dustSensor = 2;
+    ck_assert_int_eq(checkDustAndMotor(), 1);
+}
+END_TEST
+
 START_TEST(MoveEvadingObstacleTest) // 장애물 회피 Use Case 테스트
 {
     printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓장애물 감지와, 움직임의 방향을 정하고 움직이는 것이 동시에 일어 나는↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
@@ -366,6 +382,74 @@ START_TEST(MoveEvadingObstacleTest) // 장애물 회피 Use Case 테스트
 
 }
 END_TEST
+
+START_TEST(MoveEvadingErrorObstacleTest) // 장애물 회피 Use Case 중간에 모터 고장나는 테스트
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓장애물 감지와, 움직임의 방향을 정하고 움직이는 것이 동시에 일어 나고, 모터 고장난 상황↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+
+    m.isMotorError = true;
+    printf("===우측에 장애물 존재하고 모터 고장난 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 0;
+    ck_assert_int_eq(MoveEvadingObstacle(), 1);
+
+    printf("===좌측에 장애물 존재하고 모터 고장난 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 1);
+
+    printf("===전방에 장애물 존재하고 모터 고장난 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    ck_assert_int_eq(MoveEvadingObstacle(), 1);
+
+    printf("===전방 우측에 장애물 존재하고 모터 고장난 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 1;
+    s.lSensor = 0;
+    ck_assert_int_eq(MoveEvadingObstacle(), 1);
+
+    printf("===전방 좌측에 장애물 존재하고 모터 고장난 상황===\n");
+    s.rSensor = 0;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 1);
+
+    printf("===우측, 좌측에 장애물 존재하고 모터 고장난 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 1);
+
+    printf("===우측, 좌측, 전방 모두에 장애물 존재하고 모터 고장난 상황===\n");
+    s.rSensor = 1;
+    s.fSensor = 1;
+    s.lSensor = 1;
+    ck_assert_int_eq(MoveEvadingObstacle(), 1);
+
+
+}
+END_TEST
+
+
+
+
+START_TEST(cleanRoomByRVC) // 방을 꼼꼼히 치우는 테스트 케이스1
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓방을 꼼꼼히 치우는 테스트 케이스1↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+
+    printf("===우측에 장애물 존재하는 상황===\n");
+    printf("=2. 우회전=\n");
+    s.rSensor = 1;
+    s.fSensor = 0;
+    s.lSensor = 0;
+    ck_assert_int_eq(MoveEvadingObstacle(), 0);
+}
+END_TEST
+
 
 
 // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 센서 감지 케이스 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
@@ -433,6 +517,8 @@ Suite *MoveRotateErrorScenario(void) // 전진, 우회전 , 좌회전등이 차�
     return s;
 }
 
+//--------------------흡입 시나리오-----------------------------
+
 Suite *powerUpTurboOffCleanerScenario(void) // 흡입, 터보 흡입, 흡입 중지를 제대로 하는지 검사하는 시나리오
 {
     Suite *s = suite_create("\n--powerUpTurboOffCleanerScenario--");
@@ -444,11 +530,15 @@ Suite *powerUpTurboOffCleanerScenario(void) // 흡입, 터보 흡입, 흡입 중
     return s;
 }
 
-Suite *MoveEvadingObstacleScenario(void) // 장애물을 회피해서 잘 이동하는지 확인하는 시나리오
+//--------------------종합 시나리오-----------------------------
+
+Suite *CombineScenario(void) // 장애물을 회피해서 잘 이동하는지 확인하는 시나리오
 {
     Suite *s = suite_create("\n--MoveEvadingObstacleScenario--");
     TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, checkDustMotorTest);
     tcase_add_test(tc_core, MoveEvadingObstacleTest);
+    tcase_add_test(tc_core, MoveEvadingErrorObstacleTest);
     suite_add_tcase(s, tc_core);
     return s;
 }

@@ -40,8 +40,8 @@ int main(void)
     srunner_free(SensorTestRunner);
 
     printf("\n\n\n");
-//=========================== 센서 감지 + 이동 합체 시험 ===============================
-    Suite *meos = MoveEvadingObstacleScenario();
+//=========================== 센서 감지 + 이동 합체 + 종합 시험 ===============================
+    Suite *meos = CombineScenario();
 
     SRunner * MoveEvadingObstacleTestRunner = srunner_create(meos);
 

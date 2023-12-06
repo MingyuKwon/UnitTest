@@ -36,50 +36,7 @@ int moveMotorStop();
 int powerUpCleaner();
 int powerOffCleaner(); 
 int powerUpTurboCleaner();
-
-int TestMain() {
-	while (true) {
-		if (m.moveForwardModule == 0) { // 전진 중이 아닐 경우
-			if (!c.obstLocation[1]) { // 전방에 장애물이 없다면
-				moveForward(); // 전진
-			}
-		}
-
-		if (c.obstLocation[1] && !c.obstLocation[0]) { // 전방에 장애물이 있고 좌측에 장애물이 없을 때
-			turnLeft();	// 좌회전 실행
-		}
-		else if (c.obstLocation[1] && c.obstLocation[0] && !c.obstLocation[2]) { // 전방, 좌측에 장애물이 있고 우측에 장애물이 없을 때
-			turnRight(); // 우회전 실행
-		}
-		else if (c.obstLocation[1] && c.obstLocation[0] && c.obstLocation[2]) { // 전방, 좌측, 우측 모두 장애물이 있을 때
-			turnLeft();
-			turnLeft(); // 좌회전을 두 번 실행하여 180도 회전
-		}
-
-
-		if (!c.obstLocation[1]) { // 전방에 장애물이 없어 직진 중일 때
-		
-			if(m.isMotorError) // 만약 모터가 고장났다면
-			{
-				powerOffCleaner(); // 클리너 끄기
-			}else // 모터가 정상이라면
-			{
-				if (c.dustExistence == 1) { // 만약 먼지가 있다면
-					powerUpTurboCleaner(); // 클리너 터보
-				}
-				else if(c.dustExistence == 2) // 먼지 센서에 오류 생기면 
-				{
-					powerOffCleaner(); // 클리너 끄기
-				}else{
-					powerUpCleaner(); // 클리너 켜기
-				}
-			}
-		}
-	}
-
-	powerOffCleaner(); 
-	return 0;
-}
+int checkDustAndMotor();
 
 void SetSensorForUnitTest(bool isTurnLeft)
 {
@@ -116,21 +73,86 @@ int MoveEvadingObstacle()
 		}else if(detectArray[0] == 0) // 전방에 장애물 있고, 좌측에 장애물이 없는 경우
 		{
 			checkState += turnLeft();
-			checkState += moveForward();
+			if(checkState > 0) 
+			{
+				printf("좌회전 완료 실패! 직진 명령 미이행\n");
+				return 1;
+			}else
+			{
+				printf("좌회전 완료! 직진 명령 이행\n");
+				checkState += moveForward();
+			}
 		}else if(detectArray[2] == 0) // 전방, 좌측에 장애물 있고, 우측에 장애물이 없는 경우
 		{
 			checkState += turnRight();
-			checkState += moveForward();
+			if(checkState > 0) 
+			{
+				printf("우회전 완료 실패! 직진 명령 미이행\n");
+				return 1;
+			}else
+			{
+				printf("우회전 완료! 직진 명령 이행\n");
+				checkState += moveForward();
+
+			}
 		}else // 전방, 좌측, 우측 모두 장애물이 있는 경우
 		{
 			checkState += turnLeft();
+			if(checkState > 0) 
+			{
+				printf("좌회전 완료 실패! 이후 좌회전, 직진 명령 미이행\n");
+				return 1;
+			}else
+			{
+				printf("좌회전 완료! 이후 좌회전 명령 이행\n");
+			}
 			checkState += turnLeft();
+			if(checkState > 0) 
+			{
+				printf("좌회전 완료 실패! 이후 직진 명령 미이행\n");
+				return 1;
+			}else
+			{
+				printf("좌회전 완료! 이후 직진 명령 이행\n");
+			}
 			checkState += moveForward();
 		}
 
 		return checkState == 0 ? 0 : 1;
 	}
 
+	int CleanRoom() {
+	while (true) {
+		int result = MoveEvadingObstacle();
+		if(result == 1)
+		{
+			printf("에러 감지! 로봇 청소기 작동 중지\n");
+			return 1;
+		}
+
+		if (!c.obstLocation[1]) { // 전방에 장애물이 없어 직진 중일 때
+		
+			if(m.isMotorError) // 만약 모터가 고장났다면
+			{
+				powerOffCleaner(); // 클리너 끄기
+			}else // 모터가 정상이라면
+			{
+				if (c.dustExistence == 1) { // 만약 먼지가 있다면
+					powerUpTurboCleaner(); // 클리너 터보
+				}
+				else if(c.dustExistence == 2) // 먼지 센서에 오류 생기면 
+				{
+					powerOffCleaner(); // 클리너 끄기
+				}else{
+					powerUpCleaner(); // 클리너 켜기
+				}
+			}
+		}
+	}
+
+	powerOffCleaner(); 
+	return 0;
+}
 
 
 	for(int i=0; i < 5; i++)  
@@ -220,16 +242,16 @@ int detDust(int* sensor) {
 	if(s.dustSensor == 2) 
 	{
 		printf("먼지 탐지 센서 오류 감지 , 오류 반환\n");
-		return 1;
+		return 2;
 	}else if(s.dustSensor == 1)
 	{
 		printf("먼지 탐지 센서 장애물 감지\n");
+		return 1;
 	}else
 	{
 		printf("먼지 탐지 장애물 없음\n");
+		return 0;
 	}
-
-	return 0;
 
 }
 
@@ -362,4 +384,32 @@ int powerOffCleaner() {
 	m.cleanerPowerUpModule = 0; // 클리너 모듈 Off
 	printf(" 청소기 모터 Off\n");
 	return 0;
+}
+
+
+int checkDustAndMotor()
+{
+	int dustValue;
+	int returnValue = detDust(&dustValue);
+
+	if(returnValue == 2)
+	{
+		printf("먼지 감지 오류! 먼지 흡입 정지\n");
+		powerOffCleaner();
+		return 1;
+	}else 
+	{
+		int checkState = 0; // 작업이 정상적으로 이뤄 젔는지 확인
+		if(dustValue == 0) // 만약 먼지가 없는 경우
+		{
+			printf("먼지 감지 없음! 먼지 흡입 중간 강도\n");
+			checkState += powerUpCleaner();
+		}else  // 만약 먼지가 있는 경우
+		{
+			printf("먼지 감지 성공! 먼지 흡입 강한 강도\n");
+			checkState += powerUpTurboCleaner();
+		}
+
+		return checkState == 0 ? 0 : 1;
+	}
 }
