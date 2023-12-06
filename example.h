@@ -201,9 +201,27 @@ int turnRight() {
 }
 
 int moveForward() {
-	m.moveForwardModule = 30; // 30cm/s (0.3m/s)로 이동
 	m.lTurnModule = false; // 좌회전 모듈 종료
 	m.rTurnModule = false; // 우회전 모듈 종료
+
+	int detectArray[3];
+	int returnValue = detObstacle(detectArray);
+
+	if(returnValue == 2)
+	{
+		moveMotorStop();
+		printf("장애물 감지 반환값 오류! 직진 정지\n");
+		return 1;
+	}else if(detectArray[1] == 1)
+	{
+		moveMotorStop();
+		printf("전방에 장애물 존재. 직진 정지\n");
+		return 0;
+	}
+
+	if(detectArray[0] == 0)
+
+	m.moveForwardModule = 30; // 30cm/s (0.3m/s)로 이동
 
 	for(int i=0; i < 5; i++)  
 	{
@@ -213,6 +231,21 @@ int moveForward() {
 			printf("모터 고장! 직진 정지\n");
 			return 1;
 		}
+
+		returnValue = detObstacle(detectArray);
+
+		if(returnValue == 2)
+		{
+			moveMotorStop();
+			printf("장애물 감지 반환값 오류! 직진 정지\n");
+			return 1;
+		}else if(detectArray[1] == 1)
+		{
+			moveMotorStop();
+			printf("전방에 장애물 존재. 직진 정지\n");
+			return 0;
+		}
+
 		printf("직진 하는 중....\n");
 	}
 	printf("직진 마침\n");
@@ -220,6 +253,7 @@ int moveForward() {
 	moveMotorStop(); // 모터 정지
 	return 0;
 }
+
 
 int moveMotorStop() {
 	m.moveForwardModule = 0; // 모터 정지

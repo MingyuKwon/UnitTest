@@ -82,7 +82,7 @@ END_TEST
 
 START_TEST(MoveRotateTest1) // 이동 모터가 정상일 때 잘 움직이는지 확인
 {
-    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓이동, 회전 관련 모터 정상 작동 시나리오 1↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓장애물 없을 때 이동, 회전 관련 모터 정상 작동 시나리오 1↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
     printf("===모터 정상===\n");
     m.isMotorError = false; // 모터 정상!!
     printf("=1. 직진=\n");
@@ -115,6 +115,28 @@ START_TEST(MoveRotateTest2) // 이동 모터가 고장 났을 때 어떻게 움�
     ck_assert_int_eq(turnLeft(), 1); // 왼쪽으로 돌았다가
     printf("=5. 직전=\n");
     ck_assert_int_eq(moveForward(), 1); // 직진
+}
+END_TEST
+
+START_TEST(MoveRotateObstacleTest1) // 이동 모터가 정상일 때 잘 움직이는지 확인
+{
+    printf("\n↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓전방에 장애물 있을 때 이동, 회전 관련 모터 정상 작동 시나리오 1↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓\n");
+    printf("===모터 정상===\n");
+    m.isMotorError = false; // 모터 정상!!
+    printf("=1. 직진=\n");
+    ck_assert_int_eq(moveForward(), 0); // 직진
+    printf("=2. 우회전=\n");
+    ck_assert_int_eq(turnRight(), 0);  // 오른쪽으로 
+    printf("===전방 쟁애물 감지!!!===\n");
+    s.fSensor = 1;
+    printf("=3. 직진=\n");
+    ck_assert_int_eq(moveForward(), 0); // 직진
+    printf("=4. 좌회전=\n");
+    ck_assert_int_eq(turnLeft(), 0); // 왼쪽으로 돌았다가
+    printf("===좌회전 후에 장애물 없어짐!!!===\n");
+    s.fSensor = 0;
+    printf("=5. 직전=\n");
+    ck_assert_int_eq(moveForward(), 0); // 직진
 }
 END_TEST
 
@@ -333,11 +355,20 @@ Suite *LeftRightForwardScenario(void) // 전진, 우회전, 좌회전을 제대�
     return s;
 }
 
-Suite *MoveRotateScenario(void) // 전진, 우회전 , 좌회전등이 차례대로 명령되면 제대로 움직이는지 검사하는 시나리오
+Suite *MoveRotateScenario(void) // 장애물 없을 때 전진, 우회전 , 좌회전등이 차례대로 명령되면 제대로 움직이는지 검사하는 시나리오
 {
     Suite *s = suite_create("\n--MoveRotateScenario1--");
     TCase *tc_core = tcase_create("Core");
     tcase_add_test(tc_core, MoveRotateTest1);
+    suite_add_tcase(s, tc_core);
+    return s;
+}
+
+Suite *MoveRotateObstacleScenario(void) // 장애물 있을 떄 전진, 우회전 , 좌회전등이 차례대로 명령되면 제대로 움직이는지 검사하는 시나리오
+{
+    Suite *s = suite_create("\n--MoveRotateObstacleScenario1--");
+    TCase *tc_core = tcase_create("Core");
+    tcase_add_test(tc_core, MoveRotateObstacleTest1);
     suite_add_tcase(s, tc_core);
     return s;
 }

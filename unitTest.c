@@ -12,12 +12,14 @@ int main(void)
 
     Suite *mrs = MoveRotateScenario();
     Suite *mres = MoveRotateErrorScenario();
+    Suite *mros = MoveRotateObstacleScenario();
 
     SRunner *moveMotorTestRunner = srunner_create(lrfs);
     srunner_add_suite(moveMotorTestRunner,putos);
 
     srunner_add_suite(moveMotorTestRunner,mrs);
     srunner_add_suite(moveMotorTestRunner,mres);
+    srunner_add_suite(moveMotorTestRunner,mros);
 
     srunner_run_all(moveMotorTestRunner, CK_NORMAL);
     number_failed = srunner_ntests_failed(moveMotorTestRunner);
